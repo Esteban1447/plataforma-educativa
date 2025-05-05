@@ -1,6 +1,7 @@
 import LandingPage from "../pages/LandingPage";
 import Login from "../pages/login";
 import ProtectedRoute from "../components/ProtectedRoute";
+import Register from "../pages/register";
 
 export let routes = [
     {
@@ -11,4 +12,8 @@ export let routes = [
         path: "/",
         element: <Login />,
     },
+    {
+        path: "/register",
+        element: <Register />,
+    }
 ];

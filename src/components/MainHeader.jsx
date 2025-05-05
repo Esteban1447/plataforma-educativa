@@ -1,10 +1,18 @@
 import { useNavigate } from "react-router-dom";
+import { redirectAlert } from "../helpers/functions";
 
 function MainHeader() {
   const navigate = useNavigate();
 
-  const cerrarSesion = () => {
+  const logout = () => {
     localStorage.removeItem("token"); // Elimina el token del localStorage
+    redirectAlert(
+      navigate,
+      "Sesión cerrada",
+      "Has cerrado sesión correctamente",
+      "success",
+      "/"
+    ); // Muestra una alerta de éxito y redirige al usuario a la página de inicio de sesión
     navigate("/"); // Redirige al usuario a la página de inicio de sesión
   };
 
@@ -24,7 +32,7 @@ function MainHeader() {
               className="logout-link"
               onClick={(e) => {
                 e.preventDefault();
-                cerrarSesion();
+                logout();
               }}
             >
               Cerrar sesión
