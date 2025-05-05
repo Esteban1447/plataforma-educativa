@@ -1,0 +1,91 @@
+:root {
+  --color-primary: #0077cc;
+  --color-secondary: #66b2ff;
+  --color-text: #ffffff;
+  --color-action: #ff4d4d;
+  --color-background: #f4f4f4;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-primary);
+  font-family: 'Open Sans', sans-serif;
+}
+
+.main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--color-primary);
+  color: var(--color-text);
+  padding: 15px 30px;
+}
+
+.main-header-logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.main-header nav ul {
+  list-style: none;
+  display: flex;
+  gap: 15px;
+}
+
+.main-header nav a {
+  color: var(--color-text);
+  text-decoration: none;
+  position: relative;
+  background-color: transparent;
+  border: none;
+  font-size: 16px;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.main-header nav a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0%;
+  height: 2px;
+  background-color: var(--color-secondary);
+  transition: width 0.3s ease-in-out;
+}
+
+.main-header nav a:hover::after {
+  width: 100%;
+}
+
+.main-header nav a.logout-link {
+  font-weight: bold;
+  border: 2px solid transparent;
+  padding: 8px 12px;
+  border-radius: 5px;
+  transition: all 0.3s ease-in-out;
+  color: var(--color-action);
+}
+
+.main-header nav a.logout-link:hover {
+  background-color: var(--color-action);
+  color: var(--color-text);
+  border: 2px solid var(--color-action);
+}
+
+.logout-button {
+  background-color: var(--color-action);
+  color: var(--color-text);
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.logout-button:hover {
+  background-color: #cc0000;
+}
+

@@ -1,4 +1,4 @@
-import MainHeader from "./MainHeader";
+import MainHeader from "../components/MainHeader";
 import "./LandingPage.css";
 
 function LandingPage() {
