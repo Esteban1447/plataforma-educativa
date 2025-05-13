@@ -4,6 +4,7 @@ import ProtectedRoute from "../components/ProtectedRoute";
 import Register from "../pages/register";
 import CoursesPage from "../pages/CoursesPage"; // Importa CoursesPage
 import NotasPage from "../pages/NotasPage"; // Importa NotasPage
+import PerfilPage from "../pages/PerfilPage"; // Importa PerfilPage
 
 export let routes = [
     {
@@ -25,5 +26,9 @@ export let routes = [
     {
         path: "/register",
         element: <Register />, // Ruta para la página de registro
-    }
+    },
+    {
+        path: "/perfil",
+        element: <ProtectedRoute Protected={<PerfilPage />} />, // Ruta protegida para Perfil
+    },
 ];

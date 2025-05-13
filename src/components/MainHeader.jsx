@@ -5,15 +5,15 @@ function MainHeader() {
   const navigate = useNavigate();
 
   const logout = () => {
-    localStorage.removeItem("token"); // Elimina el token del localStorage
+    localStorage.removeItem("token");
     redirectAlert(
       navigate,
       "Sesión cerrada",
       "Has cerrado sesión correctamente",
       "success",
       "/"
-    ); // Muestra una alerta de éxito y redirige al usuario a la página de inicio de sesión
-    navigate("/"); // Redirige al usuario a la página de inicio de sesión
+    );
+    navigate("/");
   };
 
   return (
@@ -22,13 +22,16 @@ function MainHeader() {
       <nav>
         <ul>
           <li>
-            <Link to="/">Inicio</Link>
+            <Link to="/home">Inicio</Link>
           </li>
           <li>
             <Link to="/cursos">Cursos</Link>
           </li>
           <li>
             <Link to="/notas">Notas</Link>
+          </li>
+          <li>
+            <Link to="/perfil">Perfil</Link>
           </li>
           <li>
             <Link to="/acerca">Acerca</Link>
@@ -42,7 +45,7 @@ function MainHeader() {
               className="logout-link"
               onClick={(e) => {
                 e.preventDefault();
-                logout(); // Llama a la función de cierre de sesión
+                logout();
               }}
             >
               Cerrar sesión
