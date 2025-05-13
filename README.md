@@ -12,7 +12,6 @@ Nubilearn es una plataforma educativa moderna y fácil de usar, diseñada para e
 - 📚 **Gestionar tus cursos**  
 - 📝 **Consultar tus notas**  
 - 👤 **Actualizar tu perfil**  
-- 🔔 **Recibir notificaciones académicas**  
 - 💬 **Contactar con soporte y tu comunidad educativa**
 
 ---
