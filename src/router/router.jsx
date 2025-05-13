@@ -6,14 +6,14 @@ import Register from "../pages/register";
 export let routes = [
     {
         path: "/home",
-        element: <ProtectedRoute Protected={<LandingPage />} />, // Cambiado a "Protected" // Cambiado a "Protected"
+        element: <ProtectedRoute Protected={<LandingPage />} />, // Ruta protegida que renderiza "LandingPage"
     },
     {
         path: "/",
-        element: <Login />,
+        element: <Login />, // Ruta para la página de inicio de sesión
     },
     {
         path: "/register",
-        element: <Register />,
+        element: <Register />, // Ruta para la página de registro
     }
 ];

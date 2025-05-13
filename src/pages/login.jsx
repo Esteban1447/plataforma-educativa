@@ -61,16 +61,16 @@ const Login = () => {
                     id="username" />
             </span>
             <span className="input-span">
-                <label className="label">Password</label>
+                <label className="label">Contraseña</label>
                 <input
                     onChange={(e) => setPassword(e.target.value)}
                     type="password"
                     name="password"
                     id="password" />
             </span>
-            <span className="span"><a href="#">Forgot password?</a></span>
+            <span className="span"><a href="#">¿Olvidaste tu Contraseña?</a></span>
             <input className="submit" type="submit" onClick={login} defaultValue="Log in" />
-            <span className="span">Don't have an account? <Link to="/register">Sign up</Link></span>
+            <span className="span">No tienes una cuenta? <Link to="/register">¡Creala!</Link></span>
         </form>
     );
 }

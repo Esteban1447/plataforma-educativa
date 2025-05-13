@@ -32,7 +32,7 @@ function MainHeader() {
               className="logout-link"
               onClick={(e) => {
                 e.preventDefault();
-                logout();
+                logout(); // Llama a la función de cierre de sesión
               }}
             >
               Cerrar sesión
