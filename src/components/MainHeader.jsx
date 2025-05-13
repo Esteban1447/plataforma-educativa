@@ -18,7 +18,7 @@ function MainHeader() {
 
   return (
     <header className="main-header">
-      <div className="main-header-logo">EduPlatform</div>
+      <div className="main-header-logo">Nubilearn</div>
       <nav>
         <ul>
           <li>

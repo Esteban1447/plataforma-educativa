@@ -1,0 +1,49 @@
+.acerca-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 32px;
+}
+
+.acerca-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  max-width: 600px;
+  width: 100%;
+  padding: 32px 24px 24px 24px;
+  text-align: center;
+}
+
+.acerca-icon {
+  color: #0077cc;
+  margin-right: 10px;
+}
+
+.acerca-hr {
+  margin: 24px 0;
+}
+
+.acerca-list {
+  text-align: left;
+  margin: 0 auto;
+  max-width: 400px;
+  padding-left: 0;
+  list-style: none;
+}
+
+.acerca-list li {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.acerca-list-icon {
+  color: #0077cc;
+  margin-right: 8px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.acerca-footer {
+  color: #888;
+}

@@ -14,7 +14,7 @@ function LandingPage() {
     
       <main>
         <h1 className="landing-title">
-          Bienvenido a EduPlatform
+          Bienvenido a Nubilearn
         </h1>
         <p className="landing-description">
           Gestiona tus cursos, consulta tus notas y mantente informado sobre tus actividades académicas.

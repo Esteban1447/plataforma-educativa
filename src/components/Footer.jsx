@@ -5,7 +5,7 @@ function Footer() {
   return (
     <footer className="main-footer">
       <div className="footer-content">
-        <span>© {new Date().getFullYear()} EduPlatform. Todos los derechos reservados.</span>
+        <span>© {new Date().getFullYear()} Nubilearn. Todos los derechos reservados.</span>
         <span>
           Desarrollado por el equipo de plataforma educativa.
         </span>
