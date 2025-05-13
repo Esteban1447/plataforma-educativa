@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { redirectAlert } from "../helpers/functions";
 
 function MainHeader() {
@@ -21,14 +21,24 @@ function MainHeader() {
       <div className="main-header-logo">EduPlatform</div>
       <nav>
         <ul>
-          <li><a href="#">Inicio</a></li>
-          <li><a href="#">Cursos</a></li>
-          <li><a href="#">Notas</a></li>
-          <li><a href="#">Acerca</a></li>
-          <li><a href="#">Contacto</a></li>
           <li>
-            <a
-              href="#"
+            <Link to="/">Inicio</Link>
+          </li>
+          <li>
+            <Link to="/cursos">Cursos</Link>
+          </li>
+          <li>
+            <Link to="/notas">Notas</Link>
+          </li>
+          <li>
+            <Link to="/acerca">Acerca</Link>
+          </li>
+          <li>
+            <Link to="/contacto">Contacto</Link>
+          </li>
+          <li>
+            <Link
+              to="#"
               className="logout-link"
               onClick={(e) => {
                 e.preventDefault();
@@ -36,7 +46,7 @@ function MainHeader() {
               }}
             >
               Cerrar sesión
-            </a>
+            </Link>
           </li>
         </ul>
       </nav>

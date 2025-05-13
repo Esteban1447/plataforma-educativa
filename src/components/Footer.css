@@ -1,0 +1,20 @@
+.main-footer {
+  width: 100%;
+  background: var(--color-primary, #0077cc);
+  color: var(--color-text, #fff);
+  padding: 20px 0 10px 0;
+  text-align: center;
+  margin-top: 40px;
+  font-size: 1rem;
+  position: relative;
+  bottom: 0;
+  left: 0;
+}
+
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+}
