@@ -53,7 +53,7 @@ plataforma-educatica/
 
 1. **Clona el repositorio**
    ```bash
-   git clone https://github.com/tu-usuario/nubilearn.git
+   git clone https://github.com/Esteban1447/plataforma-educativa
    cd nubilearn
    ```
 
