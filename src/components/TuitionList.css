@@ -1,0 +1,47 @@
+.tuitions-container {
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin: 1rem 0;
+}
+
+.tuitions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.tuition-card {
+  padding: 1rem;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  background: #f9f9f9;
+}
+
+.tuition-card h4 {
+  color: var(--color-primary);
+  margin: 0 0 0.5rem 0;
+}
+
+.cancel-button {
+  background-color: #ff4d4d;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.cancel-button:hover {
+  background-color: #ff3333;
+}
+
+.no-tuitions {
+  text-align: center;
+  color: #666;
+  padding: 1rem;
+}

@@ -1,4 +1,3 @@
-
 /* From Uiverse.io by bociKond */ 
 .form {
     --bg-light: #efefef;
@@ -48,6 +47,24 @@
   .form input[type="email"]:focus,
   .form input[type="password"]:focus,
   .form input[type="text"]:focus { /* Agregado input[type="text"]:focus */
+    outline: 2px solid var(--clr);
+  }
+  
+  .form select {
+    border-radius: 0.5rem;
+    padding: 1rem 0.75rem;
+    width: 100%;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: var(--clr-alpha);
+    outline: 2px solid var(--bg-dark);
+    color: var(--bg-dark);
+    cursor: pointer;
+  }
+  
+  .form select:focus {
     outline: 2px solid var(--clr);
   }
   

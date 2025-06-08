@@ -2,43 +2,48 @@ import LandingPage from "../pages/LandingPage";
 import Login from "../pages/login";
 import ProtectedRoute from "../components/ProtectedRoute";
 import Register from "../pages/register";
-import CoursesPage from "../pages/CoursesPage"; // Importa CoursesPage
-import NotasPage from "../pages/NotasPage"; // Importa NotasPage
-import PerfilPage from "../pages/PerfilPage"; // Importa PerfilPage
-import AcercaPage from "../pages/AcercaPage"; // Importa AcercaPage
-import ContactoPage from "../pages/ContactoPage"; // Importa ContactoPage
+import CoursesPage from "../pages/CoursesPage";
+import NotasPage from "../pages/NotasPage";
+import PerfilPage from "../pages/PerfilPage";
+import AcercaPage from "../pages/AcercaPage";
+import ContactoPage from "../pages/ContactoPage";
+import AdminPage from "../pages/AdminPage";
 
 export let routes = [
     {
         path: "/home",
-        element: <ProtectedRoute Protected={<LandingPage />} />, // Ruta protegida que renderiza "LandingPage"
+        element: <ProtectedRoute Protected={<LandingPage />} />,
     },
     {
         path: "/cursos",
-        element: <ProtectedRoute Protected={<CoursesPage />} />, // Ruta protegida para Cursos
+        element: <ProtectedRoute Protected={<CoursesPage />} />,
     },
     {
         path: "/notas",
-        element: <ProtectedRoute Protected={<NotasPage />} />, // Ruta protegida para Notas
+        element: <ProtectedRoute Protected={<NotasPage />} />,
     },
     {
         path: "/",
-        element: <Login />, // Ruta para la página de inicio de sesión
+        element: <Login />,
     },
     {
         path: "/register",
-        element: <Register />, // Ruta para la página de registro
+        element: <Register />,
     },
     {
         path: "/perfil",
-        element: <ProtectedRoute Protected={<PerfilPage />} />, // Ruta protegida para Perfil
+        element: <ProtectedRoute Protected={<PerfilPage />} />,
     },
     {
         path: "/acerca",
-        element: <AcercaPage />, // Ruta pública para Acerca de
+        element: <AcercaPage />,
     },
     {
         path: "/contacto",
-        element: <ContactoPage />, // Ruta pública para Contacto
+        element: <ContactoPage />,
     },
+    {
+        path: "/admin",
+        element: <ProtectedRoute Protected={<AdminPage />} requiredRole="Administrator" />,
+    }
 ];

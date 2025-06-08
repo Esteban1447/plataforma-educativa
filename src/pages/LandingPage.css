@@ -24,6 +24,9 @@ body {
 .main-header-logo {
   font-size: 1.5rem;
   font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .main-header nav ul {
@@ -41,6 +44,9 @@ body {
   font-size: 16px;
   padding: 10px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .main-header nav a::after {
@@ -71,6 +77,10 @@ body {
   background-color: var(--color-action);
   color: var(--color-text);
   border: 2px solid var(--color-action);
+}
+
+.main-header nav a.logout-link::after {
+  background-color: var(--color-text);
 }
 
 .logout-button {
@@ -153,5 +163,27 @@ body {
   margin-bottom: 40px;
   margin-left: auto;
   margin-right: auto;
+}
+
+/* Estilos específicos para tarjetas de profesor */
+.landing-card[data-type="teacher"] {
+  border-left: 4px solid var(--color-primary);
+}
+
+/* Estilos específicos para tarjetas de estudiante */
+.landing-card[data-type="student"] {
+  border-left: 4px solid var(--color-secondary);
+}
+
+/* Ajustes responsive para las tarjetas */
+@media (max-width: 768px) {
+  .landing-cards-container {
+    padding: 0 16px;
+  }
+  
+  .landing-card {
+    width: 100%;
+    min-width: unset;
+  }
 }
 

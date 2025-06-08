@@ -3,6 +3,7 @@ import { redirectAlert } from "../helpers/functions";
 
 function MainHeader() {
   const navigate = useNavigate();
+  const userType = localStorage.getItem("userType");
 
   const logout = () => {
     localStorage.removeItem("token");
@@ -18,27 +19,53 @@ function MainHeader() {
 
   return (
     <header className="main-header">
-      <div className="main-header-logo">Nubilearn</div>
+      <div className="main-header-logo">
+        <i className="fas fa-graduation-cap"></i> Nubilearn
+      </div>
       <nav>
         <ul>
           <li>
-            <Link to="/home">Inicio</Link>
+            <Link to="/home">
+              <i className="fas fa-home"></i> Inicio
+            </Link>
           </li>
           <li>
-            <Link to="/cursos">Cursos</Link>
+            <Link to="/cursos">
+              <i className="fas fa-book"></i> Cursos
+            </Link>
           </li>
           <li>
-            <Link to="/notas">Notas</Link>
+            <Link to="/matriculas">
+              <i className="fas fa-clipboard-check"></i> Matrículas
+            </Link>
           </li>
           <li>
-            <Link to="/perfil">Perfil</Link>
+            <Link to="/notas">
+              <i className="fas fa-clipboard-list"></i> Notas
+            </Link>
           </li>
           <li>
-            <Link to="/acerca">Acerca</Link>
+            <Link to="/perfil">
+              <i className="fas fa-user"></i> Perfil
+            </Link>
           </li>
           <li>
-            <Link to="/contacto">Contacto</Link>
+            <Link to="/acerca">
+              <i className="fas fa-info-circle"></i> Acerca
+            </Link>
           </li>
+          <li>
+            <Link to="/contacto">
+              <i className="fas fa-envelope"></i> Contacto
+            </Link>
+          </li>
+          {userType === "Administrator" && (
+            <li>
+              <Link to="/admin">
+                <i className="fas fa-user-shield"></i> Admin
+              </Link>
+            </li>
+          )}
           <li>
             <Link
               to="#"
@@ -48,7 +75,7 @@ function MainHeader() {
                 logout();
               }}
             >
-              Cerrar sesión
+              <i className="fas fa-sign-out-alt"></i> Cerrar sesión
             </Link>
           </li>
         </ul>

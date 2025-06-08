@@ -1,0 +1,11 @@
+.tuition-page-container {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.tuition-title {
+    color: var(--color-primary);
+    margin-bottom: 2rem;
+    text-align: center;
+}

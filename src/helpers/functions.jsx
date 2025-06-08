@@ -37,3 +37,12 @@ export function generateToken() {
     Math.random().toString(36).substring(2, 10)
   );
 }
+
+export function normalizeName(text) {
+  return text
+    .normalize("NFD")                     // Normalizar caracteres Unicode
+    .replace(/[\u0300-\u036f]/g, "")     // Eliminar diacríticos
+    .toLowerCase()                        // Convertir a minúsculas
+    .replace(/^\w/, c => c.toUpperCase()) // Primera letra mayúscula
+    .trim();                             // Eliminar espacios al inicio y final
+}

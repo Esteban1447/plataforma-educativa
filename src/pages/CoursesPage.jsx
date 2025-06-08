@@ -1,43 +1,124 @@
+import { useEffect, useState } from "react";
 import MainHeader from "../components/MainHeader";
 import Footer from "../components/Footer";
-import "./LandingPage.css"; // Reutiliza estilos de tarjetas
-
-
-// Falta la vista independiente de profesores
-
-// Se usan datos quemados para la demostración
+import { getCourses, getTeacherCourses } from "../services/courseService";
+import { errorAlert } from "../helpers/functions";
+import "./CoursesPage.css";
 
 function CoursesPage() {
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const userType = localStorage.getItem('userType');
+  const userId = localStorage.getItem('userId');
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        setLoading(true);
+        let coursesData;
+        if (userType === 'Teacher') {
+          coursesData = await getTeacherCourses(userId);
+        } else {
+          coursesData = await getCourses();
+        }
+        
+        // Validar que coursesData sea un array
+        if (!Array.isArray(coursesData)) {
+          throw new Error('La respuesta del servidor no tiene el formato esperado');
+        }
+        
+        setCourses(coursesData);
+      } catch (error) {
+        console.error("Error fetching courses:", error);
+        setError(error.message);
+        errorAlert('Error', 'No se pudieron cargar los cursos', 'error');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, [userType, userId]);
+
+  if (loading) {
+    return (
+      <>
+        <MainHeader />
+        <main className="courses-container">
+          <div className="loading-indicator">
+            <i className="fas fa-spinner fa-spin"></i>
+            <p>Cargando cursos...</p>
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
+  if (error) {
+    return (
+      <>
+        <MainHeader />
+        <main className="courses-container">
+          <div className="error-message">
+            <i className="fas fa-exclamation-circle"></i>
+            <p>Error al cargar los cursos. Por favor, intente nuevamente.</p>
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
   return (
     <>
       <MainHeader />
-      <main>
-        <h1 className="landing-title">
-          <i className="fas fa-book-open" style={{ color: "#0077cc", marginRight: "12px" }}></i>
-          Mis Cursos
+      <main className="courses-container">
+        <h1 className="courses-title">
+          {userType === 'Teacher' ? 'Mis Cursos Asignados' : 'Cursos Disponibles'}
         </h1>
-        <p className="landing-description">
-          Aquí puedes ver todos los cursos en los que estás inscrito.
-        </p>
-        <div className="landing-cards-container">
-          <div className="landing-card">
-            <i className="fas fa-flask fa-2x" style={{ color: "#58bc82", marginBottom: "12px" }}></i>
-            <h2>Química Básica</h2>
-            <p>Prof. Ana Gómez</p>
-            <p><i className="fas fa-calendar-alt"></i> Lunes y Miércoles</p>
-          </div>
-          <div className="landing-card">
-            <i className="fas fa-laptop-code fa-2x" style={{ color: "#ff4d4d", marginBottom: "12px" }}></i>
-            <h2>Programación I</h2>
-            <p>Prof. Juan Pérez</p>
-            <p><i className="fas fa-calendar-alt"></i> Martes y Jueves</p>
-          </div>
-          <div className="landing-card">
-            <i className="fas fa-language fa-2x" style={{ color: "#0077cc", marginBottom: "12px" }}></i>
-            <h2>Inglés Intermedio</h2>
-            <p>Prof. Laura Ruiz</p>
-            <p><i className="fas fa-calendar-alt"></i> Viernes</p>
-          </div>
+        <div className="courses-grid">
+          {courses && courses.length > 0 ? (
+            courses.map((course) => (
+              <div 
+                key={course.id_course} 
+                className="course-card"
+                onClick={() => setSelectedCourse(selectedCourse === course ? null : course)}
+              >
+                <i className={course.icon} style={{ color: course.color, fontSize: '2rem' }}></i>
+                <h2>{course.name}</h2>
+                <p className="teacher-name">Prof. {course.teacher_name}</p>
+                
+                {selectedCourse?.id_course === course.id_course && (
+                  <div className="course-details">
+                    <h3>Módulos del curso:</h3>
+                    <ul>
+                      {course.modules.map((module, index) => (
+                        <li key={index}>{module}</li>
+                      ))}
+                    </ul>
+                    {userType === 'Student' && (
+                      <button className="enroll-button">
+                        Matricular
+                      </button>
+                    )}
+                    {userType === 'Teacher' && (
+                      <button className="manage-button">
+                        Gestionar
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))
+          ) : (
+            <div className="no-courses-message">
+              <i className="fas fa-book-open"></i>
+              <p>No hay cursos disponibles en este momento.</p>
+            </div>
+          )}
         </div>
       </main>
       <Footer />
