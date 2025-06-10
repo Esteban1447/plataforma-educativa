@@ -19,7 +19,22 @@ function CoursesPage() {
         setLoading(true);
         let coursesData;
         if (userType === 'Teacher') {
-          coursesData = await getTeacherCourses(userId);
+          // Obtener todos los grades del profesor y extraer cursos únicos
+          const grades = await getTeacherCourses(userId); // getTeacherCourses retorna grades para el profe
+          // Extraer cursos únicos desde grades (grade.subject)
+          const courseMap = {};
+          grades.forEach(({ course, students }) => {
+            if (course && !courseMap[course.id]) {
+              courseMap[course.id] = {
+                ...course,
+                teacher_name: course.teacher?.user?.name || "",
+                modules: [], // Si tienes módulos, agrégalos aquí
+                icon: "fas fa-book",
+                color: "#0077cc"
+              };
+            }
+          });
+          coursesData = Object.values(courseMap);
         } else {
           coursesData = await getCourses();
         }
@@ -83,7 +98,7 @@ function CoursesPage() {
           {courses && courses.length > 0 ? (
             courses.map((course) => (
               <div 
-                key={course.id_course} 
+                key={course.id} 
                 className="course-card"
                 onClick={() => setSelectedCourse(selectedCourse === course ? null : course)}
               >
@@ -91,7 +106,7 @@ function CoursesPage() {
                 <h2>{course.name}</h2>
                 <p className="teacher-name">Prof. {course.teacher_name}</p>
                 
-                {selectedCourse?.id_course === course.id_course && (
+                {selectedCourse?.id === course.id && (
                   <div className="course-details">
                     <h3>Módulos del curso:</h3>
                     <ul>

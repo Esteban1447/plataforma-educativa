@@ -5,6 +5,7 @@ import "./AdminPage.css";
 import { API_BASE_URL } from '../config/api';
 import { errorAlert } from "../helpers/functions";
 import CourseForm from '../components/CourseForm';
+import { getCourseGrades } from "../services/courseService";
 
 function AdminPage() {
   const [users, setUsers] = useState([]);
@@ -28,7 +29,7 @@ function AdminPage() {
   // Añadir estado para manejar la asignación de profesores
   const [teachers, setTeachers] = useState([]);
   const [selectedCourseId, setSelectedCourseId] = useState(null);
-  const [assignedTeachers, setAssignedTeachers] = useState({});
+  // const [assignedTeachers, setAssignedTeachers] = useState({}); // Ya no se usa
   const [showCourseForm, setShowCourseForm] = useState(false);
   const [selectedCourseForTeachers, setSelectedCourseForTeachers] = useState(null);
   const [editingCourse, setEditingCourse] = useState(null);
@@ -37,6 +38,12 @@ function AdminPage() {
   // Añadir nuevo estado para el modal de estudiantes
   const [selectedCourseForStudents, setSelectedCourseForStudents] = useState(null);
   const [availableStudents, setAvailableStudents] = useState([]);
+  // Nuevo estado para estudiantes realmente matriculados
+  const [enrolledStudents, setEnrolledStudents] = useState([]);
+  // Nuevo estado para materias (subjects)
+  const [subjects, setSubjects] = useState([]);
+  const [showAssignTeacherModal, setShowAssignTeacherModal] = useState(false);
+  const [subjectToAssign, setSubjectToAssign] = useState(null);
 
   const fetchUsers = async () => {
     try {
@@ -79,6 +86,63 @@ function AdminPage() {
     }
   };
 
+  // Obtener estudiantes matriculados en el curso (por grades)
+  const fetchEnrolledStudents = async (courseId) => {
+    try {
+      // grades tiene student y subject, subject tiene course
+      const grades = await getCourseGrades(courseId);
+      // Filtrar estudiantes únicos realmente matriculados en este curso
+      const studentsMap = {};
+      grades.forEach(g => {
+        if (
+          g.student && g.student.id &&
+          g.subject && g.subject.course && g.subject.course.id === courseId
+        ) {
+          studentsMap[g.student.id] = g.student;
+        }
+      });
+      setEnrolledStudents(Object.values(studentsMap));
+      // Guardar conteo de estudiantes por materia en el estado del curso
+      // (opcional, si lo usas para mostrar el conteo)
+      const subjectStudentCount = {};
+      grades.forEach(g => {
+        if (
+          g.student && g.student.id &&
+          g.subject && g.subject.id &&
+          g.subject.course && g.subject.course.id === courseId
+        ) {
+          if (!subjectStudentCount[g.subject.id]) {
+            subjectStudentCount[g.subject.id] = new Set();
+          }
+          subjectStudentCount[g.subject.id].add(g.student.id);
+        }
+      });
+      setCourses(prevCourses =>
+        prevCourses.map(course =>
+          course.id === courseId
+            ? {
+                ...course,
+                subjectStudentCount: subjectStudentCount
+              }
+            : course
+        )
+      );
+    } catch (error) {
+      setEnrolledStudents([]);
+    }
+  };
+
+  // Obtener materias (subjects)
+  const fetchSubjects = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/subjects`);
+      const data = await response.json();
+      setSubjects(data);
+    } catch (error) {
+      console.error("Error fetching subjects:", error);
+    }
+  };
+
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -87,6 +151,7 @@ function AdminPage() {
     if (activeTab === 'courses') {
       fetchCourses();
       fetchTeachers();
+      fetchSubjects();
     }
   }, [activeTab]);
 
@@ -190,32 +255,79 @@ function AdminPage() {
     setCourses([...courses, newCourse]);
   };
 
-  const handleAssignTeacher = async (courseId, teacherId) => {
+  // Permite añadir un profesor a un curso (solo uno, según el esquema)
+  const handleAddTeacherToCourse = async (courseId, teacherId) => {
     try {
-      const selectedTeacher = teachers.find(t => t.id === parseInt(teacherId));
+      const course = courses.find(c => c.id === courseId);
+      if (!course) return;
+
+      // Obtener el profesor desde la API para asegurar datos actualizados
+      const teacherRes = await fetch(`${API_BASE_URL}/teachers/${teacherId}`);
+      if (!teacherRes.ok) {
+        errorAlert('Error', 'No se pudo obtener el profesor', 'error');
+        return;
+      }
+      const teacher = await teacherRes.json();
+
+      // Verificar si el curso ya tiene asignado este profesor
+      if (course.teacher && course.teacher.id === teacher.id) {
+        errorAlert('Error', 'El profesor ya está asignado a este curso', 'warning');
+        return;
+      }
+
       const response = await fetch(`${API_BASE_URL}/courses/${courseId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: courses.find(c => c.id === courseId).name,
-          teacher: { id: parseInt(teacherId) }
+          name: course.name,
+          teacher: { id: teacher.id }
         }),
       });
 
-      if (!response.ok) throw new Error('Error al asignar profesor');
-      
-      // Actualizar el estado local de profesores asignados
-      setAssignedTeachers({
-        ...assignedTeachers,
-        [courseId]: selectedTeacher.user.name
-      });
-      
+      if (!response.ok) throw new Error('Error al añadir profesor');
+
+      // Actualizar localmente
+      setCourses(courses.map(c =>
+        c.id === courseId ? { ...c, teacher } : c
+      ));
       fetchCourses();
-      errorAlert('Éxito', 'Profesor asignado correctamente', 'success');
+      errorAlert('Éxito', 'Profesor añadido correctamente', 'success');
     } catch (error) {
-      errorAlert('Error', 'No se pudo asignar el profesor', 'error');
+      errorAlert('Error', 'No se pudo añadir el profesor', 'error');
+    }
+  };
+
+  // Permite eliminar un profesor de un curso
+  const handleRemoveTeacherFromCourse = async (courseId, teacherId) => {
+    try {
+      const course = courses.find(c => c.id === courseId);
+      if (!course) return;
+
+      // Solo se puede eliminar si el profesor asignado es el mismo
+      if (!course.teacher || course.teacher.id !== teacherId) return;
+
+      const response = await fetch(`${API_BASE_URL}/courses/${courseId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: course.name,
+          teacher: null
+        }),
+      });
+
+      if (!response.ok) throw new Error('Error al eliminar profesor');
+
+      setCourses(courses.map(c =>
+        c.id === courseId ? { ...c, teacher: null } : c
+      ));
+      fetchCourses();
+      errorAlert('Éxito', 'Profesor eliminado correctamente', 'success');
+    } catch (error) {
+      errorAlert('Error', 'No se pudo eliminar el profesor', 'error');
     }
   };
 
@@ -289,20 +401,113 @@ function AdminPage() {
   // Añadir función para manejar la matrícula de estudiantes
   const handleEnrollStudent = async (courseId, studentId) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/courses/${courseId}`, {
+      // Obtener el curso para saber el nombre
+      const courseRes = await fetch(`${API_BASE_URL}/courses/${courseId}`);
+      if (!courseRes.ok) throw new Error('No se pudo obtener el curso');
+      const course = await courseRes.json();
+
+      // Buscar el subject que corresponde al curso (por nombre igual)
+      const subjectsRes = await fetch(`${API_BASE_URL}/subjects`);
+      if (!subjectsRes.ok) throw new Error('No se pudo obtener subjects');
+      const subjects = await subjectsRes.json();
+      const subject = subjects.find(s => s.name === course.name && s.course?.id === courseId);
+      if (!subject) throw new Error('No se encontró el subject correspondiente al curso');
+
+      // Crear el registro en grades
+      const response = await fetch(`${API_BASE_URL}/grades`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ studentId }),
+        body: JSON.stringify({
+          student: { id: studentId },
+          subject: { id: subject.id },
+          evaluationDate: null,
+          score: null
+        }),
       });
 
       if (!response.ok) throw new Error('Error al matricular estudiante');
-      
       fetchCourses();
+      // Actualizar estudiantes matriculados
+      fetchEnrolledStudents(courseId);
       errorAlert('Éxito', 'Estudiante matriculado correctamente', 'success');
     } catch (error) {
       errorAlert('Error', 'No se pudo matricular al estudiante', 'error');
+    }
+  };
+
+  // Nuevo useEffect: actualizar estudiantes matriculados al abrir el modal
+  useEffect(() => {
+    if (selectedCourseForStudents) {
+      fetchEnrolledStudents(selectedCourseForStudents.id);
+    }
+  }, [selectedCourseForStudents]);
+
+  // Nueva función para asignar profesor a una materia (realmente al curso)
+  const handleAssignTeacherToSubject = async (courseId, teacherId) => {
+    try {
+      // Buscar el curso y el profesor
+      const course = courses.find(c => c.id === courseId);
+      const teacher = teachers.find(t => t.id === parseInt(teacherId));
+      if (!course || !teacher) return;
+
+      // Enviar PUT a /courses/:id con { name, teacher: { id } }
+      const response = await fetch(`${API_BASE_URL}/courses/${courseId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: course.name,
+          teacher: { id: teacher.id }
+        }),
+      });
+
+      if (!response.ok) throw new Error('Error al asignar profesor al curso');
+
+      // Actualizar localmente la lista de cursos
+      setCourses(courses.map(c =>
+        c.id === courseId ? { ...c, teacher } : c
+      ));
+      errorAlert('Éxito', 'Profesor asignado correctamente', 'success');
+    } catch (error) {
+      errorAlert('Error', 'No se pudo asignar el profesor', 'error');
+    }
+  };
+
+  // Nueva función para asignar profesor a una materia (subject)
+  const handleAssignTeacherToSubjectModal = (subject) => {
+    setSubjectToAssign(subject);
+    setShowAssignTeacherModal(true);
+  };
+
+  const handleAssignTeacherToSubjectConfirm = async (teacherId) => {
+    if (!subjectToAssign || !teacherId) return;
+    try {
+      // Actualizar el profesor del curso relacionado a la materia
+      const response = await fetch(`${API_BASE_URL}/courses/${subjectToAssign.course.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: subjectToAssign.course.name,
+          teacher: { id: parseInt(teacherId) }
+        }),
+      });
+      if (!response.ok) throw new Error('Error al asignar profesor al curso');
+      // Actualizar localmente la lista de subjects
+      setSubjects(subjects.map(s =>
+        s.id === subjectToAssign.id
+          ? { ...s, teacher: teachers.find(t => t.id === parseInt(teacherId)) }
+          : s
+      ));
+      setShowAssignTeacherModal(false);
+      setSubjectToAssign(null);
+      errorAlert('Éxito', 'Profesor asignado a la materia correctamente', 'success');
+    } catch (error) {
+      errorAlert('Error', 'No se pudo asignar el profesor a la materia', 'error');
     }
   };
 
@@ -509,6 +714,26 @@ function AdminPage() {
                               className="delete-button"
                               onClick={async () => {
                                 try {
+                                  // Primero, intentar eliminar entidades dependientes si existen (por ejemplo, estudiante/profesor)
+                                  if (user.userType === "Student") {
+                                    await fetch(`${API_BASE_URL}/students/${user.id}`, {
+                                      method: "DELETE",
+                                      headers: {
+                                        'Content-Type': 'application/json'
+                                      }
+                                    });
+                                  }
+                                  if (user.userType === "Teacher") {
+                                    await fetch(`${API_BASE_URL}/teachers/${user.id}`, {
+                                      method: "DELETE",
+                                      headers: {
+                                        'Content-Type': 'application/json'
+                                      }
+                                    });
+                                  }
+                                  // IMPORTANTE: Esperar un pequeño tiempo para que el backend procese la eliminación dependiente
+                                  await new Promise(res => setTimeout(res, 300));
+                                  // Luego eliminar el usuario base
                                   const response = await fetch(`${API_BASE_URL}/users/${user.id}`, {
                                     method: "DELETE",
                                     headers: {
@@ -530,12 +755,24 @@ function AdminPage() {
                                     "success"
                                   );
                                 } catch (error) {
+                                  // Si el error es de tipo TransientObjectException, muestra un mensaje claro
+                                  if (
+                                    error.message &&
+                                    error.message.includes("TransientObjectException")
+                                  ) {
+                                    errorAlert(
+                                      "Error",
+                                      "No se pudo eliminar el usuario porque tiene referencias dependientes no guardadas. Asegúrate de eliminar primero todas las entidades relacionadas (estudiante/profesor) y que el usuario esté correctamente guardado.",
+                                      "error"
+                                    );
+                                  } else {
+                                    errorAlert(
+                                      "Error", 
+                                      `No se pudo eliminar el usuario: ${error.message}`, 
+                                      "error"
+                                    );
+                                  }
                                   console.error('Error al eliminar usuario:', error);
-                                  errorAlert(
-                                    "Error", 
-                                    `No se pudo eliminar el usuario: ${error.message}`, 
-                                    "error"
-                                  );
                                 }
                               }}
                             >
@@ -579,8 +816,7 @@ function AdminPage() {
                   <tr>
                     <th>ID</th>
                     <th>Nombre del Curso</th>
-                    <th>Asignar Profesor</th>
-                    <th>Estudiantes Matriculados</th>
+                    <th>Materias</th>
                     <th>Acciones</th>
                   </tr>
                 </thead>
@@ -590,52 +826,6 @@ function AdminPage() {
                       <td>{course.id}</td>
                       <td>{course.name}</td>
                       <td>
-                        {selectedCourseId === course.id ? (
-                          <select
-                            onChange={(e) => {
-                              handleAssignTeacher(course.id, e.target.value);
-                              setSelectedCourseId(null);
-                            }}
-                            defaultValue=""
-                          >
-                            <option value="" disabled>Seleccionar profesor</option>
-                            {teachers.map(teacher => (
-                              <option key={teacher.id} value={teacher.id}>
-                                {teacher.user?.name}
-                              </option>
-                            ))}
-                          </select>
-                        ) : (
-                          <div className="teacher-info">
-                            {course.teacher?.user?.name ? (
-                              <>
-                                <span>{course.teacher.user.name}</span>
-                                <button 
-                                  className="edit-button"
-                                  onClick={() => setSelectedCourseId(course.id)}
-                                  title="Cambiar profesor"
-                                >
-                                  <i className="fas fa-user-edit"></i>
-                                </button>
-                              </>
-                            ) : (
-                              <>
-                                <button 
-                                  className="edit-button"
-                                  onClick={() => setSelectedCourseId(course.id)}
-                                  title="Asignar profesor"
-                                >
-                                  <i className="fas fa-user-plus"></i>
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        )}
-                      </td>
-                      <td>
-                        <span className="student-count">
-                          {course.students?.length || 0} estudiantes
-                        </span>
                       </td>
                       <td>
                         <div className="action-buttons">
@@ -648,13 +838,6 @@ function AdminPage() {
                           </button>
                           <button 
                             className="view-button" 
-                            title="Ver profesores"
-                            onClick={() => handleViewTeachers(course.id)}
-                          >
-                            <i className="fas fa-users"></i>
-                          </button>
-                          <button 
-                            className="view-button" 
                             title="Gestionar estudiantes"
                             onClick={() => {
                               setSelectedCourseForStudents(course);
@@ -662,6 +845,13 @@ function AdminPage() {
                             }}
                           >
                             <i className="fas fa-user-graduate"></i>
+                          </button>
+                          <button 
+                            className="assign-teacher-btn"
+                            title="Asignar profesor"
+                            onClick={() => setSelectedCourseForTeachers(course)}
+                          >
+                            <i className="fas fa-user-plus"></i>
                           </button>
                           <button 
                             className="delete-button" 
@@ -692,7 +882,7 @@ function AdminPage() {
           <div className="modal-backdrop" onClick={handleCloseModal}>
             <div className="modal-content" onClick={e => e.stopPropagation()}>
               <div className="modal-header">
-                <h3>Profesor del curso: {selectedCourseForTeachers.name}</h3>
+                <h3>Asignar Profesor al curso: {selectedCourseForTeachers.name}</h3>
                 <button className="modal-close" onClick={handleCloseModal}>
                   <i className="fas fa-times"></i>
                 </button>
@@ -705,6 +895,7 @@ function AdminPage() {
                         <th>Nombre</th>
                         <th>Especialidad</th>
                         <th>Estado</th>
+                        <th>Acción</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -716,12 +907,44 @@ function AdminPage() {
                             Activo
                           </span>
                         </td>
+                        <td>
+                          <button
+                            className="delete-button"
+                            title="Eliminar profesor"
+                            onClick={() => handleRemoveTeacherFromCourse(selectedCourseForTeachers.id, selectedCourseForTeachers.teacher.id)}
+                          >
+                            <i className="fas fa-times"></i>
+                          </button>
+                        </td>
                       </tr>
                     </tbody>
                   </table>
                 ) : (
                   <p className="no-teachers">No hay profesor asignado a este curso</p>
                 )}
+                {/* Selector para añadir profesor desde el modal */}
+                <div style={{marginTop: 16}}>
+                  <label>Seleccionar profesor:</label>
+                  <select
+                    style={{marginTop: 8, width: '100%'}}
+                    onChange={e => {
+                      if (e.target.value) {
+                        handleAddTeacherToCourse(selectedCourseForTeachers.id, e.target.value);
+                        e.target.value = '';
+                      }
+                    }}
+                    defaultValue=""
+                  >
+                    <option value="" disabled>Agregar profesor</option>
+                    {teachers
+                      .filter(t => !selectedCourseForTeachers.teacher || selectedCourseForTeachers.teacher.id !== t.id)
+                      .map(t => (
+                        <option key={t.id} value={t.id}>
+                          {t.user?.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
               </div>
             </div>
           </div>
@@ -762,33 +985,45 @@ function AdminPage() {
           <div className="modal-backdrop" onClick={() => setSelectedCourseForStudents(null)}>
             <div className="modal-content" onClick={e => e.stopPropagation()}>
               <div className="modal-header">
-                <h3>Gestionar Estudiantes: {selectedCourseForStudents.name}</h3>
+                <h3>
+                  Gestionar Estudiantes: {selectedCourseForStudents.name}
+                  {/* Mostrar el conteo real de estudiantes por materia */}
+                  <span style={{marginLeft: '1rem', fontSize: '1rem', color: '#666'}}>
+                    (
+                    {enrolledStudents.length} estudiantes)
+                  </span>
+                </h3>
                 <button className="modal-close" onClick={() => setSelectedCourseForStudents(null)}>
                   <i className="fas fa-times"></i>
                 </button>
               </div>
               <div className="modal-body">
                 <h4>Estudiantes Matriculados</h4>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Nombre</th>
-                      <th>Email</th>
-                      <th>Estado</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {selectedCourseForStudents.students?.map(student => (
-                      <tr key={student.id}>
-                        <td>{student.user?.name}</td>
-                        <td>{student.user?.email}</td>
-                        <td>
-                          <span className="student-status active">Activo</span>
-                        </td>
+                {/* Mostrar lista de estudiantes realmente matriculados */}
+                {enrolledStudents.length > 0 ? (
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Estado</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {enrolledStudents.map(student => (
+                        <tr key={student.id}>
+                          <td>{student.user?.name}</td>
+                          <td>{student.user?.email}</td>
+                          <td>
+                            <span className="student-status active">Activo</span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <p style={{color: '#888'}}>No hay estudiantes matriculados en este curso.</p>
+                )}
 
                 <h4>Matricular Nuevo Estudiante</h4>
                 <select 
@@ -801,7 +1036,7 @@ function AdminPage() {
                 >
                   <option value="">Seleccionar estudiante</option>
                   {availableStudents
-                    .filter(student => !selectedCourseForStudents.students?.some(
+                    .filter(student => !enrolledStudents.some(
                       enrolled => enrolled.id === student.id
                     ))
                     .map(student => (
@@ -809,6 +1044,38 @@ function AdminPage() {
                         {student.user?.name}
                       </option>
                     ))}
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showAssignTeacherModal && subjectToAssign && (
+          <div className="modal-backdrop" onClick={() => setShowAssignTeacherModal(false)}>
+            <div className="modal-content" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3>Asignar Profesor a: {subjectToAssign.name}</h3>
+                <button className="modal-close" onClick={() => setShowAssignTeacherModal(false)}>
+                  <i className="fas fa-times"></i>
+                </button>
+              </div>
+              <div className="modal-body">
+                <label>Selecciona un profesor:</label>
+                <select
+                  style={{width: '100%', marginTop: 12}}
+                  defaultValue=""
+                  onChange={e => {
+                    if (e.target.value) {
+                      handleAssignTeacherToSubjectConfirm(e.target.value);
+                    }
+                  }}
+                >
+                  <option value="" disabled>Seleccionar profesor</option>
+                  {teachers.map(t => (
+                    <option key={t.id} value={t.id}>
+                      {t.user?.name}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>

@@ -55,4 +55,7 @@ function TuitionList({ studentId, isAdmin = false }) {
   );
 }
 
+// Si tu lógica de getTuitions ya retorna los grades con subject y course, no necesitas cambiar nada aquí.
+// Si no, deberías actualizar getTuitions en tu tuitionService para que consulte los grades del estudiante.
+
 export default TuitionList;

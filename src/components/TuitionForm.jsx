@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { getCourses } from '../services/courseService';
-import { createTuition, getStudentTuitionCount } from '../services/tuitionService';
+import { getCourses, enrollStudentInCourse } from '../services/courseService';
+import { getStudentTuitionCount } from '../services/tuitionService';
 import { errorAlert } from '../helpers/functions';
 import './TuitionForm.css';
 
@@ -35,7 +35,7 @@ function TuitionForm({ studentId, onTuitionCreated }) {
         return;
       }
 
-      await createTuition(studentId, selectedCourse);
+      await enrollStudentInCourse(selectedCourse, studentId);
       errorAlert('Éxito', 'Matrícula realizada correctamente', 'success');
       setSelectedCourse('');
       if (onTuitionCreated) onTuitionCreated();

@@ -45,13 +45,30 @@ function CourseForm({ onCourseCreated }) {
       }
 
       const newCourse = await response.json();
+
+      // Crear el subject asociado al curso
+      const subjectResponse = await fetch(`${API_BASE_URL}/subjects`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: normalizedName,
+          course: { id: newCourse.id }
+        }),
+      });
+
+      if (!subjectResponse.ok) {
+        throw new Error('Error al crear el subject');
+      }
+
       onCourseCreated(newCourse);
       setCourseName('');
-      errorAlert("Éxito", "Curso creado correctamente", "success");
+      errorAlert("Éxito", "Curso y materia creados correctamente", "success");
 
     } catch (error) {
       console.error('Error:', error);
-      errorAlert("Error", "No se pudo crear el curso", "error");
+      errorAlert("Error", "No se pudo crear el curso y la materia", "error");
     }
   };
 
