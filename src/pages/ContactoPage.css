@@ -53,3 +53,19 @@
 .contacto-mail {
   color: #888;
 }
+
+@media (max-width: 600px) {
+  .contacto-container {
+    margin-top: 12px;
+    padding: 0 4vw;
+  }
+  .contacto-card {
+    max-width: 98vw;
+    padding: 16px 6px 12px 6px;
+  }
+  .contacto-form input,
+  .contacto-form textarea {
+    font-size: 15px;
+    padding: 8px;
+  }
+}

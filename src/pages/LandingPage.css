@@ -177,13 +177,63 @@ body {
 
 /* Ajustes responsive para las tarjetas */
 @media (max-width: 768px) {
-  .landing-cards-container {
-    padding: 0 16px;
+  .main-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 10px 10px;
+    gap: 10px;
   }
-  
+  .main-header-logo {
+    font-size: 1.1rem;
+  }
+  .main-header nav ul {
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    padding: 0;
+  }
+  .main-header nav a {
+    font-size: 15px;
+    padding: 8px 0;
+    width: 100%;
+  }
+  .landing-title {
+    font-size: 1.5rem;
+  }
+  .landing-description {
+    font-size: 1rem;
+    margin-bottom: 24px;
+  }
+  .landing-cards-container {
+    padding: 0 8px;
+    gap: 16px;
+  }
   .landing-card {
     width: 100%;
     min-width: unset;
+    padding: 18px;
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-header {
+    padding: 6px 2vw;
+  }
+  .main-header-logo {
+    font-size: 1rem;
+    gap: 4px;
+  }
+  .landing-title {
+    font-size: 1.1rem;
+  }
+  .landing-description {
+    font-size: 0.95rem;
+    margin-bottom: 16px;
+  }
+  .landing-card {
+    padding: 12px;
+    font-size: 0.9rem;
   }
 }
 

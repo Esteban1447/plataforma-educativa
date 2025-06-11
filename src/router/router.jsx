@@ -9,6 +9,7 @@ import AcercaPage from "../pages/AcercaPage";
 import ContactoPage from "../pages/ContactoPage";
 import AdminPage from "../pages/AdminPage";
 
+// No uses errorElement aquí, solo define las rutas normalmente
 export let routes = [
     {
         path: "/home",

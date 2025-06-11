@@ -20,7 +20,10 @@ class ErrorBoundary extends React.Component {
       return (
         <div className="error-container">
           <h2>Lo sentimos, algo salió mal.</h2>
-          <p>Por favor, actualice la página o contacte con soporte si el problema persiste.</p>
+          <p>Por favor, actualiza la página o contacta con soporte si el problema persiste.</p>
+          <button onClick={() => window.location.reload()} style={{marginTop: 16}}>
+            Recargar página
+          </button>
         </div>
       );
     }

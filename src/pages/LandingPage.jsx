@@ -1,7 +1,6 @@
 import MainHeader from "../components/MainHeader";
 import ImageCarousel from "../components/ImageCarousel";
 import Footer from "../components/Footer";
-import ErrorBoundary from "../components/ErrorBoundary";
 import "./LandingPage.css";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -55,7 +54,7 @@ function LandingPage() {
   ];
 
   return (
-    <ErrorBoundary>
+    <>
       <MainHeader />
       <ImageCarousel />
       <main>
@@ -81,7 +80,7 @@ function LandingPage() {
         </div>
       </main>
       <Footer />
-    </ErrorBoundary>
+    </>
   );
 }
 

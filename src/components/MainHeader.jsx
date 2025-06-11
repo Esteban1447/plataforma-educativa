@@ -35,11 +35,6 @@ function MainHeader() {
             </Link>
           </li>
           <li>
-            <Link to="/matriculas">
-              <i className="fas fa-clipboard-check"></i> Matrículas
-            </Link>
-          </li>
-          <li>
             <Link to="/notas">
               <i className="fas fa-clipboard-list"></i> Notas
             </Link>

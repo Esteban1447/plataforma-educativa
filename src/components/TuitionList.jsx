@@ -29,18 +29,28 @@ function TuitionList({ studentId, isAdmin = false }) {
     }
   };
 
+  // Función para comparar nombres normalizados
+  const normalizeName = name =>
+    name && name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+
+  // Filtrar tuitions por comparación de nombre de course y subject
+  const filteredTuitions = tuitions.filter(tuition => {
+    if (!tuition.course || !tuition.subject) return false;
+    return normalizeName(tuition.course.name) === normalizeName(tuition.subject.name);
+  });
+
   return (
     <div className="tuitions-container">
       <h3>Matrículas Activas</h3>
-      {tuitions.length === 0 ? (
+      {filteredTuitions.length === 0 ? (
         <p className="no-tuitions">No hay matrículas activas</p>
       ) : (
         <div className="tuitions-grid">
-          {tuitions.map((tuition) => (
+          {filteredTuitions.map((tuition) => (
             <div key={tuition.id} className="tuition-card">
               <h4>{tuition.course.name}</h4>
               <p>Fecha: {new Date(tuition.inscriptionDate).toLocaleDateString()}</p>
-              {isAdmin && <p>Estudiante: {tuition.student.name}</p>}
+              {isAdmin && <p>Estudiante: {tuition.student.user?.name}</p>}
               <button 
                 className="cancel-button"
                 onClick={() => handleCancelTuition(tuition.id)}

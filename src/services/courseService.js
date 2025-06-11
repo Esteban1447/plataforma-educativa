@@ -57,18 +57,22 @@ export const enrollStudentInCourse = async (courseId, studentId) => {
     if (!courseRes.ok) throw new Error('No se pudo obtener el curso');
     const course = await courseRes.json();
 
-    // Buscar el subject que corresponde al curso (por nombre igual)
-    const subjectsRes = await fetch(`${API_URL}/subjects`);
+    // Buscar el subject que corresponde al curso (por nombre igual y courseId), incluyendo los grades embebidos
+    const subjectsRes = await fetch(`${API_URL}/subjects?course.id=${courseId}&_embed=grades`);
     if (!subjectsRes.ok) throw new Error('No se pudo obtener subjects');
     const subjects = await subjectsRes.json();
-    const subject = subjects.find(s => s.name === course.name && s.course?.id === courseId);
+    // Normalizar nombre para comparación robusta
+    const normalizeName = name => name && name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+    const subject = subjects.find(
+      s => normalizeName(s.name) === normalizeName(course.name) && s.course?.id === courseId
+    );
     if (!subject) throw new Error('No se encontró el subject correspondiente al curso');
 
-    // Verificar si ya existe un grade para este student y subject
-    const gradesRes = await fetch(`${API_URL}/grades?studentId=${studentId}&subjectId=${subject.id}`);
-    if (!gradesRes.ok) throw new Error('No se pudo verificar calificaciones previas');
-    const grades = await gradesRes.json();
-    if (Array.isArray(grades) && grades.length > 0) {
+    // Verificar si ya existe un grade para este student y subject usando los grades embebidos en el subject
+    const alreadyEnrolled = Array.isArray(subject.grades)
+      ? subject.grades.filter(g => g.student && g.student.id === studentId)
+      : [];
+    if (alreadyEnrolled.length > 0) {
       throw new Error('El estudiante ya está matriculado en este curso');
     }
 
@@ -128,17 +132,51 @@ export const getStudentGrades = async (studentId) => {
   }
 };
 
-export const getCourseGrades = async (subjectId) => {
+// Cambia getCourseGrades para aceptar courseId y devolver todos los grades de todos los subjects de ese curso
+export const getCourseGrades = async (courseId) => {
   try {
-    const response = await fetch(`${API_URL}/grades?subjectId=${subjectId}`);
-    if (!response.ok) throw new Error('Error al obtener notas del curso');
-    return await response.json();
+    // Obtener todos los subjects del curso
+    const subjectsRes = await fetch(`${API_URL}/subjects?course.id=${courseId}`);
+    if (!subjectsRes.ok) throw new Error('No se pudieron obtener las materias del curso');
+    const subjects = await subjectsRes.json();
+    let allGrades = [];
+    for (const subject of subjects) {
+      const gradesRes = await fetch(`${API_URL}/grades?subjectId=${subject.id}`);
+      if (!gradesRes.ok) continue;
+      const grades = await gradesRes.json();
+      allGrades = allGrades.concat(grades);
+    }
+    // Filtrar grades con subject válido
+    allGrades = allGrades.filter(g => g.subject !== null);
+    return allGrades;
   } catch (error) {
     console.error('[CourseService] Error:', error);
     throw error;
   }
 };
 
+// Nueva función: obtener todos los grades de un curso (por todos sus subjects)
+export const getAllGradesForCourse = async (courseId) => {
+  try {
+    // Obtener todos los subjects del curso
+    const subjectsRes = await fetch(`${API_URL}/subjects?course.id=${courseId}`);
+    if (!subjectsRes.ok) throw new Error('No se pudieron obtener las materias del curso');
+    const subjects = await subjectsRes.json();
+    let allGrades = [];
+    for (const subject of subjects) {
+      const gradesRes = await fetch(`${API_URL}/grades?subjectId=${subject.id}`);
+      if (!gradesRes.ok) continue;
+      const grades = await gradesRes.json();
+      allGrades = allGrades.concat(grades);
+    }
+    // Filtrar grades con subject válido
+    allGrades = allGrades.filter(g => g.subject !== null);
+    return allGrades;
+  } catch (error) {
+    console.error('[CourseService] Error:', error);
+    throw error;
+  }
+};
 
 export const updateGrade = async (gradeId, newGrade) => {
   try {

@@ -3,7 +3,7 @@ import MainHeader from "../components/MainHeader";
 import Footer from "../components/Footer";
 import "./AdminPage.css";
 import { API_BASE_URL } from '../config/api';
-import { errorAlert } from "../helpers/functions";
+import { errorAlert, deleteUser } from "../helpers/functions";
 import CourseForm from '../components/CourseForm';
 import { getCourseGrades } from "../services/courseService";
 
@@ -275,13 +275,14 @@ function AdminPage() {
         return;
       }
 
+      // Enviar todos los datos previos del curso en el PUT
       const response = await fetch(`${API_BASE_URL}/courses/${courseId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: course.name,
+          ...course,
           teacher: { id: teacher.id }
         }),
       });
@@ -308,13 +309,14 @@ function AdminPage() {
       // Solo se puede eliminar si el profesor asignado es el mismo
       if (!course.teacher || course.teacher.id !== teacherId) return;
 
+      // Enviar todos los datos previos del curso en el PUT
       const response = await fetch(`${API_BASE_URL}/courses/${courseId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: course.name,
+          ...course,
           teacher: null
         }),
       });
@@ -351,12 +353,14 @@ function AdminPage() {
 
   const handleUpdateCourse = async () => {
     try {
+      // Enviar todos los datos previos del curso en el PUT
       const response = await fetch(`${API_BASE_URL}/courses/${editingCourse.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          ...editingCourse,
           name: editedName,
           teacher: editingCourse.teacher ? { id: editingCourse.teacher.id } : null
         }),
@@ -406,11 +410,15 @@ function AdminPage() {
       if (!courseRes.ok) throw new Error('No se pudo obtener el curso');
       const course = await courseRes.json();
 
-      // Buscar el subject que corresponde al curso (por nombre igual)
+      // Buscar el subject que corresponde al curso (por nombre igual y courseId)
       const subjectsRes = await fetch(`${API_BASE_URL}/subjects`);
       if (!subjectsRes.ok) throw new Error('No se pudo obtener subjects');
       const subjects = await subjectsRes.json();
-      const subject = subjects.find(s => s.name === course.name && s.course?.id === courseId);
+      // Normalizar nombre para comparación robusta
+      const normalizeName = name => name && name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+      const subject = subjects.find(
+        s => normalizeName(s.name) === normalizeName(course.name) && s.course?.id === courseId
+      );
       if (!subject) throw new Error('No se encontró el subject correspondiente al curso');
 
       // Crear el registro en grades
@@ -452,14 +460,14 @@ function AdminPage() {
       const teacher = teachers.find(t => t.id === parseInt(teacherId));
       if (!course || !teacher) return;
 
-      // Enviar PUT a /courses/:id con { name, teacher: { id } }
+      // Enviar todos los datos previos del curso en el PUT
       const response = await fetch(`${API_BASE_URL}/courses/${courseId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: course.name,
+          ...course,
           teacher: { id: teacher.id }
         }),
       });
@@ -477,22 +485,18 @@ function AdminPage() {
   };
 
   // Nueva función para asignar profesor a una materia (subject)
-  const handleAssignTeacherToSubjectModal = (subject) => {
-    setSubjectToAssign(subject);
-    setShowAssignTeacherModal(true);
-  };
-
   const handleAssignTeacherToSubjectConfirm = async (teacherId) => {
     if (!subjectToAssign || !teacherId) return;
     try {
       // Actualizar el profesor del curso relacionado a la materia
+      const course = courses.find(c => c.id === subjectToAssign.course.id);
       const response = await fetch(`${API_BASE_URL}/courses/${subjectToAssign.course.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: subjectToAssign.course.name,
+          ...course,
           teacher: { id: parseInt(teacherId) }
         }),
       });
@@ -712,68 +716,66 @@ function AdminPage() {
                             </button>
                             <button 
                               className="delete-button"
-                              onClick={async () => {
-                                try {
-                                  // Primero, intentar eliminar entidades dependientes si existen (por ejemplo, estudiante/profesor)
-                                  if (user.userType === "Student") {
-                                    await fetch(`${API_BASE_URL}/students/${user.id}`, {
-                                      method: "DELETE",
-                                      headers: {
-                                        'Content-Type': 'application/json'
-                                      }
-                                    });
-                                  }
-                                  if (user.userType === "Teacher") {
-                                    await fetch(`${API_BASE_URL}/teachers/${user.id}`, {
-                                      method: "DELETE",
-                                      headers: {
-                                        'Content-Type': 'application/json'
-                                      }
-                                    });
-                                  }
-                                  // IMPORTANTE: Esperar un pequeño tiempo para que el backend procese la eliminación dependiente
-                                  await new Promise(res => setTimeout(res, 300));
-                                  // Luego eliminar el usuario base
-                                  const response = await fetch(`${API_BASE_URL}/users/${user.id}`, {
-                                    method: "DELETE",
-                                    headers: {
-                                      'Content-Type': 'application/json'
+                              onClick={() => {
+                                deleteUser(async () => {
+                                  try {
+                                    // Primero, intentar eliminar entidades dependientes si existen (por ejemplo, estudiante/profesor)
+                                    if (user.userType === "Student") {
+                                      await fetch(`${API_BASE_URL}/students/${user.id}`, {
+                                        method: "DELETE",
+                                        headers: {
+                                          'Content-Type': 'application/json'
+                                        }
+                                      });
                                     }
-                                  });
+                                    if (user.userType === "Teacher") {
+                                      await fetch(`${API_BASE_URL}/teachers/${user.id}`, {
+                                        method: "DELETE",
+                                        headers: {
+                                          'Content-Type': 'application/json'
+                                        }
+                                      });
+                                    }
+                                    // IMPORTANTE: Esperar un pequeño tiempo para que el backend procese la eliminación dependiente
+                                    await new Promise(res => setTimeout(res, 300));
+                                    // Luego eliminar el usuario base
+                                    const response = await fetch(`${API_BASE_URL}/users/${user.id}`, {
+                                      method: "DELETE",
+                                      headers: {
+                                        'Content-Type': 'application/json'
+                                      }
+                                    });
 
-                                  if (!response.ok) {
-                                    throw new Error(`Error ${response.status}: ${response.statusText}`);
-                                  }
+                                    if (!response.ok) {
+                                      throw new Error(`Error ${response.status}: ${response.statusText}`);
+                                    }
 
-                                  // Verificar si el usuario fue eliminado correctamente
-                                  const remainingUsers = users.filter(u => u.id !== user.id);
-                                  setUsers(remainingUsers);
-                                  
-                                  errorAlert(
-                                    "Éxito", 
-                                    "Usuario eliminado correctamente", 
-                                    "success"
-                                  );
-                                } catch (error) {
-                                  // Si el error es de tipo TransientObjectException, muestra un mensaje claro
-                                  if (
-                                    error.message &&
-                                    error.message.includes("TransientObjectException")
-                                  ) {
-                                    errorAlert(
-                                      "Error",
-                                      "No se pudo eliminar el usuario porque tiene referencias dependientes no guardadas. Asegúrate de eliminar primero todas las entidades relacionadas (estudiante/profesor) y que el usuario esté correctamente guardado.",
-                                      "error"
-                                    );
-                                  } else {
-                                    errorAlert(
-                                      "Error", 
-                                      `No se pudo eliminar el usuario: ${error.message}`, 
-                                      "error"
-                                    );
+                                    // Verificar si el usuario fue eliminado correctamente
+                                    const remainingUsers = users.filter(u => u.id !== user.id);
+                                    setUsers(remainingUsers);
+                                    
+                                    // El mensaje de éxito ya lo muestra deleteUser
+                                  } catch (error) {
+                                    // Si el error es de tipo TransientObjectException, muestra un mensaje claro
+                                    if (
+                                      error.message &&
+                                      error.message.includes("TransientObjectException")
+                                    ) {
+                                      errorAlert(
+                                        "Error",
+                                        "No se pudo eliminar el usuario porque tiene referencias dependientes no guardadas. Asegúrate de eliminar primero todas las entidades relacionadas (estudiante/profesor) y que el usuario esté correctamente guardado.",
+                                        "error"
+                                      );
+                                    } else {
+                                      errorAlert(
+                                        "Error", 
+                                        `No se pudo eliminar el usuario: ${error.message}`, 
+                                        "error"
+                                      );
+                                    }
+                                    console.error('Error al eliminar usuario:', error);
                                   }
-                                  console.error('Error al eliminar usuario:', error);
-                                }
+                                }, user.name);
                               }}
                             >
                               <i className="fas fa-trash"></i>

@@ -1,8 +1,18 @@
 import MainHeader from "../components/MainHeader";
 import Footer from "../components/Footer";
 import "./ContactoPage.css";
+import { useState } from "react";
+import { errorAlert } from "../helpers/functions";
 
 function ContactoPage() {
+  const [sent, setSent] = useState(false);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setSent(true);
+    errorAlert("¡Mensaje enviado!", "Tu mensaje ha sido enviado correctamente. Pronto nos pondremos en contacto contigo.", "success");
+  };
+
   return (
     <>
       <MainHeader />
@@ -16,7 +26,7 @@ function ContactoPage() {
             <p>
               ¿Tienes dudas, sugerencias o necesitas soporte? ¡Contáctanos!
             </p>
-            <form className="contacto-form">
+            <form className="contacto-form" onSubmit={handleSubmit}>
               <input
                 type="text"
                 placeholder="Tu nombre"
@@ -33,10 +43,11 @@ function ContactoPage() {
                 rows={5}
               />
               <button
-                type="button"
+                type="submit"
                 className="contacto-btn"
+                disabled={sent}
               >
-                Enviar mensaje
+                {sent ? "Mensaje enviado" : "Enviar mensaje"}
               </button>
             </form>
             <hr style={{ margin: "32px 0" }} />

@@ -3,11 +3,11 @@ import MainHeader from "../components/MainHeader";
 import Footer from "../components/Footer";
 import "./NotasPage.css";
 import { errorAlert } from "../helpers/functions";
-import { getTeacherCourses, getCourseGrades, updateGrade, getStudentGrades } from "../services/courseService";
+import { API_BASE_URL } from "../config/api";
 
 function NotasPage() {
   const [courses, setCourses] = useState([]);
-  const [courseStudents, setCourseStudents] = useState({});
+  const [gradesByCourse, setGradesByCourse] = useState({});
   const [loading, setLoading] = useState(false);
   const [editGradeId, setEditGradeId] = useState(null);
   const [editGradeValue, setEditGradeValue] = useState('');
@@ -20,36 +20,58 @@ function NotasPage() {
       setLoading(true);
       try {
         if (userType === 'Teacher') {
-          // Obtener todos los cursos asignados al profesor
-          const teacherCourses = await getTeacherCourses(userId);
+          // 1. Obtener cursos asignados al profesor
+          const coursesRes = await fetch(`${API_BASE_URL}/courses?teachersId=${userId}`);
+          if (!coursesRes.ok) throw new Error('No se pudo obtener los cursos del profesor');
+          const teacherCourses = await coursesRes.json();
           setCourses(teacherCourses);
 
-          // Para cada curso, obtener los subjects y sus notas
-          const studentsByCourse = {};
+          // 2. Para cada curso, obtener materias y grades
+          const gradesByCourseTemp = {};
           for (const course of teacherCourses) {
-            // Obtener subjects del curso
-            const subjectsRes = await fetch(`http://localhost:8080/subjects?course.id=${course.id}`);
+            // Obtener materias del curso
+            const subjectsRes = await fetch(`${API_BASE_URL}/subjects?courseId=${course.id}`);
             const subjects = await subjectsRes.json();
-            // Para cada subject, obtener las notas
-            let gradesArr = [];
+
+            // Para cada materia, obtener grades
+            let allGrades = [];
             for (const subject of subjects) {
-              const grades = await getCourseGrades(subject.id); // Usar subject.id
-              gradesArr = gradesArr.concat(
-                grades.map(g => ({
-                  student: g.student,
-                  grade: g.score,
-                  gradeId: g.id,
-                  subject: g.subject
-                }))
+              const gradesRes = await fetch(`${API_BASE_URL}/grades?subjectId=${subject.id}`);
+              const grades = await gradesRes.json();
+              // grades[i].student puede ser null si no está bien creado
+              allGrades = allGrades.concat(
+                grades.filter(g => g.student && g.student.id)
               );
             }
-            studentsByCourse[course.id] = gradesArr;
+
+            // Agrupar por estudiante
+            const studentsMap = {};
+            allGrades.forEach(g => {
+              const studentId = g.student.id;
+              if (!studentsMap[studentId]) {
+                studentsMap[studentId] = {
+                  student: g.student,
+                  grades: []
+                };
+              }
+              studentsMap[studentId].grades.push({
+                subject: subjects.find(s => s.id === (g.subject?.id || g.subjectId)),
+                grade: g.score,
+                gradeId: g.id
+              });
+            });
+
+            gradesByCourseTemp[course.id] = {
+              subjects,
+              students: Object.values(studentsMap)
+            };
           }
-          setCourseStudents(studentsByCourse);
+          setGradesByCourse(gradesByCourseTemp);
         } else if (userType === 'Student') {
           // Obtener notas del estudiante
-          const grades = await getStudentGrades(userId);
-          setStudentGrades(grades);
+          const response = await fetch(`${API_BASE_URL}/grades?student.id=${userId}&_expand=subject`);
+          const grades = await response.json();
+          setStudentGrades(grades.filter(g => g.subject));
         }
       } catch (error) {
         errorAlert('Error', 'No se pudieron cargar los cursos y estudiantes', 'error');
@@ -68,36 +90,30 @@ function NotasPage() {
 
   const handleSaveClick = async (gradeId) => {
     try {
-      await updateGrade(gradeId, editGradeValue);
-      errorAlert('Éxito', 'Nota actualizada correctamente', 'success');
-      // Refrescar estudiantes y notas del curso correspondiente
-      // Buscar el subjectId correcto para este grade
-      let subjectId = null;
-      let courseId = null;
-      Object.keys(courseStudents).forEach(cid => {
-        const found = courseStudents[cid].find(s => s.gradeId === gradeId);
-        if (found && found.subject && found.subject.id) {
-          subjectId = found.subject.id;
-          courseId = cid;
-        }
+      // Obtener los datos actuales del grade
+      const currentRes = await fetch(`${API_BASE_URL}/grades/${gradeId}`);
+      if (!currentRes.ok) throw new Error('No se pudo obtener la calificación actual');
+      const currentGrade = await currentRes.json();
+
+      // Construir el body con el formato requerido
+      const updatedGrade = {
+        student: { id: currentGrade.student?.id },
+        subject: { id: currentGrade.subject?.id },
+        score: editGradeValue,
+        evaluationDate: new Date().toISOString().split('T')[0]
+      };
+
+      const response = await fetch(`${API_BASE_URL}/grades/${gradeId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedGrade)
       });
-      if (subjectId && courseId) {
-        const grades = await getCourseGrades(subjectId);
-        setCourseStudents(prev => ({
-          ...prev,
-          [courseId]: [
-            ...prev[courseId].filter(g => g.subject?.id !== subjectId),
-            ...grades.map(g => ({
-              student: g.student,
-              grade: g.score,
-              gradeId: g.id,
-              subject: g.subject
-            }))
-          ]
-        }));
-      }
+      if (!response.ok) throw new Error('Error al actualizar nota');
+      errorAlert('Éxito', 'Nota actualizada correctamente', 'success');
       setEditGradeId(null);
       setEditGradeValue('');
+      // Refrescar datos
+      window.location.reload();
     } catch (error) {
       errorAlert('Error', 'No se pudo actualizar la nota', 'error');
     }
@@ -121,78 +137,92 @@ function NotasPage() {
                 <p>Cargando notas...</p>
               ) : (
                 courses && courses.length > 0 ? (
-                  courses.map((course) => (
-                    <div key={course.id} className="course-grades-block">
-                      <h3>{course.name}</h3>
-                      <table>
-                        <thead>
-                          <tr>
-                            <th>Estudiante</th>
-                            <th>Nota</th>
-                            <th>Acción</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {(courseStudents[course.id] || []).filter(
-                            item => item.student && item.subject && item.subject.course && item.subject.course.id === course.id
-                          ).length > 0 ? (
-                            (courseStudents[course.id] || [])
-                              .filter(
-                                item => item.student && item.subject && item.subject.course && item.subject.course.id === course.id
-                              )
-                              .map(({ student, grade, gradeId }) => (
-                                <tr key={gradeId}>
-                                  <td>{student?.user?.name}</td>
+                  courses.map((course) => {
+                    const courseData = gradesByCourse[course.id];
+                    if (!courseData) return null;
+                    const { subjects, students } = courseData;
+                    return (
+                      <div key={course.id} className="course-grades-block">
+                        <h3>{course.name}</h3>
+                        <table>
+                          <thead>
+                            <tr>
+                              <th>Estudiante</th>
+                              {subjects.map(subject => (
+                                <th key={subject.id}>{subject.name}</th>
+                              ))}
+                              <th>Acciones</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {students.length > 0 ? (
+                              students.map(({ student, grades }) => (
+                                <tr key={student.id}>
+                                  <td>{student.user?.name || student.name || `Estudiante #${student.id}`}</td>
+                                  {subjects.map(subject => {
+                                    const gradeObj = grades.find(g => g.subject && g.subject.id === subject.id);
+                                    return (
+                                      <td key={subject.id}>
+                                        {gradeObj
+                                          ? (
+                                            editGradeId === gradeObj.gradeId ? (
+                                              <>
+                                                <input
+                                                  type="number"
+                                                  min="0"
+                                                  max="100"
+                                                  value={editGradeValue}
+                                                  onChange={e => setEditGradeValue(e.target.value)}
+                                                  style={{ width: 70 }}
+                                                />
+                                                <button
+                                                  className="save-grade-btn"
+                                                  onClick={() => handleSaveClick(gradeObj.gradeId)}
+                                                >Guardar</button>
+                                                <button
+                                                  className="cancel-grade-btn"
+                                                  onClick={handleCancelEdit}
+                                                >Cancelar</button>
+                                              </>
+                                            ) : (
+                                              <>
+                                                {gradeObj.grade !== null ? gradeObj.grade : 'Sin calificar'}
+                                              </>
+                                            )
+                                          )
+                                          : 'Sin calificar'
+                                        }
+                                      </td>
+                                    );
+                                  })}
                                   <td>
-                                    {editGradeId === gradeId ? (
-                                      <input
-                                        type="number"
-                                        min="0"
-                                        max="100"
-                                        value={editGradeValue}
-                                        onChange={e => setEditGradeValue(e.target.value)}
-                                        style={{ width: 70 }}
-                                      />
-                                    ) : (
-                                      grade !== null ? grade : 'Sin calificar'
-                                    )}
-                                  </td>
-                                  <td>
-                                    {editGradeId === gradeId ? (
-                                      <>
-                                        <button
-                                          className="save-grade-btn"
-                                          onClick={() => handleSaveClick(gradeId)}
-                                        >
-                                          Guardar
-                                        </button>
-                                        <button
-                                          className="cancel-grade-btn"
-                                          onClick={handleCancelEdit}
-                                        >
-                                          Cancelar
-                                        </button>
-                                      </>
-                                    ) : (
-                                      <button
-                                        className="edit-grade-btn"
-                                        onClick={() => handleEditClick(gradeId, grade)}
-                                      >
-                                        Editar
-                                      </button>
-                                    )}
+                                    {/* Acciones: un botón editar por cada materia */}
+                                    {subjects.map(subject => {
+                                      const gradeObj = grades.find(g => g.subject && g.subject.id === subject.id);
+                                      return (
+                                        <span key={subject.id} style={{ marginRight: 8 }}>
+                                          {gradeObj && editGradeId !== gradeObj.gradeId && (
+                                            <button
+                                              className="edit-grade-btn"
+                                              onClick={() => handleEditClick(gradeObj.gradeId, gradeObj.grade)}
+                                            >Editar</button>
+                                          )}
+                                        </span>
+                                      );
+                                    })}
                                   </td>
                                 </tr>
                               ))
-                          ) : (
-                            <tr>
-                              <td colSpan="3">No hay estudiantes matriculados en este curso.</td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  ))
+                            ) : (
+                              <tr>
+                                <td colSpan={1 + subjects.length + 1}>No hay estudiantes matriculados en este curso.</td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    );
+                  })
                 ) : (
                   <p>No hay cursos asignados.</p>
                 )

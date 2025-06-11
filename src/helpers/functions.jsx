@@ -13,7 +13,7 @@ export function redirectAlert(redirect, title, message, icon, url) {
   Swal.fire({
     title: title,
     html: message,
-    timer: 2000,
+    timer: 750,
     icon: icon,
     timerProgressBar: true,
     didOpen: () => {
@@ -45,4 +45,35 @@ export function normalizeName(text) {
     .toLowerCase()                        // Convertir a minúsculas
     .replace(/^\w/, c => c.toUpperCase()) // Primera letra mayúscula
     .trim();                             // Eliminar espacios al inicio y final
+}
+
+export async function deleteUser(onDelete, userName) {
+  const result = await Swal.fire({
+    title: `¿Eliminar usuario${userName ? `: ${userName}` : ""}?`,
+    text: "Esta acción no se puede deshacer.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Sí, eliminar",
+    cancelButtonText: "Cancelar",
+    reverseButtons: true,
+  });
+
+  if (result.isConfirmed) {
+    try {
+      await onDelete();
+      await Swal.fire({
+        title: "Eliminado",
+        text: "El usuario ha sido eliminado.",
+        icon: "success",
+        timer: 1200,
+        showConfirmButton: false,
+      });
+    } catch (error) {
+      await Swal.fire({
+        title: "Error al eliminar usuario",
+        text: error?.message || "Ocurrió un error inesperado.",
+        icon: "error",
+      });
+    }
+  }
 }

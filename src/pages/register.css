@@ -104,4 +104,12 @@
     color: var(--clr);
   }
 
+  @media (max-width: 600px) {
+    .form {
+      max-width: 98vw;
+      padding: 1vh;
+      font-size: 16px;
+    }
+  }
+
 

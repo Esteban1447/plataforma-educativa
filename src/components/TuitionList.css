@@ -45,3 +45,17 @@
   color: #666;
   padding: 1rem;
 }
+
+@media (max-width: 600px) {
+  .tuitions-container {
+    padding: 0.5rem;
+  }
+  .tuitions-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  .tuition-card {
+    padding: 0.5rem;
+    font-size: 0.98rem;
+  }
+}

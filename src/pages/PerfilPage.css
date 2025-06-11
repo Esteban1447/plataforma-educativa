@@ -70,3 +70,18 @@
 .perfil-btn:hover {
   background: #005fa3;
 }
+
+@media (max-width: 600px) {
+  .perfil-container {
+    margin-top: 12px;
+    padding: 0 4vw;
+  }
+  .perfil-card {
+    max-width: 98vw;
+    padding: 16px 6px 12px 6px;
+  }
+  .perfil-avatar {
+    width: 80px;
+    height: 80px;
+  }
+}

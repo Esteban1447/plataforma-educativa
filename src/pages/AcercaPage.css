@@ -47,3 +47,18 @@
 .acerca-footer {
   color: #888;
 }
+
+@media (max-width: 600px) {
+  .acerca-container {
+    margin-top: 12px;
+    padding: 0 4vw;
+  }
+  .acerca-card {
+    max-width: 98vw;
+    padding: 16px 6px 12px 6px;
+  }
+  .acerca-list {
+    max-width: 98vw;
+    font-size: 0.98rem;
+  }
+}

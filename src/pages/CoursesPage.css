@@ -133,6 +133,38 @@
   to { transform: rotate(360deg); }
 }
 
+@media (max-width: 900px) {
+  .courses-container {
+    padding: 1rem;
+  }
+  .courses-title {
+    font-size: 1.3rem;
+  }
+  .courses-grid {
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .courses-container {
+    padding: 0.5rem;
+  }
+  .courses-title {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+  }
+  .course-card {
+    padding: 0.8rem;
+    font-size: 0.95rem;
+  }
+  .course-card h2 {
+    font-size: 1rem;
+  }
+  .course-details h3 {
+    font-size: 0.95rem;
+  }
+}
+
 @media (max-width: 768px) {
   .courses-grid {
     grid-template-columns: 1fr;
