@@ -18,11 +18,7 @@ function LandingPage() {
   }, []);
 
   const studentCards = [
-    {
-      title: "Mis Cursos",
-      description: "Accede a tus cursos matriculados",
-      path: "/cursos"
-    },
+
     {
       title: "Mis Notas",
       description: "Consulta tus calificaciones",
@@ -36,21 +32,13 @@ function LandingPage() {
   ];
 
   const teacherCards = [
-    {
-      title: "Gestionar Cursos",
-      description: "Administra tus cursos asignados",
-      path: "/cursos"
-    },
+
     {
       title: "Calificaciones",
       description: "Gestiona las notas de tus estudiantes",
       path: "/notas"
     },
-    {
-      title: "Material Didáctico",
-      description: "Sube y gestiona recursos educativos",
-      path: "/recursos"
-    }
+
   ];
 
   return (
