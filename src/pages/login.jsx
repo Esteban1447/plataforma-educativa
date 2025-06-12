@@ -50,7 +50,6 @@ const Login = () => {
                     const teacherRes = await fetch(`${API_BASE_URL}/teachers?userId=${user.id}`);
                     if (teacherRes.ok) {
                         const teachers = await teacherRes.json();
-                        // Si la respuesta es un objeto, conviértelo en array
                         const teacherArr = Array.isArray(teachers) ? teachers : [teachers];
                         if (teacherArr.length > 0 && teacherArr[0].id) {
                             localStorage.setItem("teacherId", String(teacherArr[0].id));
@@ -65,6 +64,28 @@ const Login = () => {
                 }
             } else {
                 localStorage.removeItem("teacherId");
+            }
+
+            // Si es estudiante, obtener el studentId desde /students?userId={user.id}
+            if (user.userType === "Student") {
+                try {
+                    const studentRes = await fetch(`${API_BASE_URL}/students?userId=${user.id}`);
+                    if (studentRes.ok) {
+                        const students = await studentRes.json();
+                        const studentArr = Array.isArray(students) ? students : [students];
+                        if (studentArr.length > 0 && studentArr[0].id) {
+                            localStorage.setItem("studentId", String(studentArr[0].id));
+                        } else {
+                            localStorage.removeItem("studentId");
+                        }
+                    } else {
+                        localStorage.removeItem("studentId");
+                    }
+                } catch (e) {
+                    localStorage.removeItem("studentId");
+                }
+            } else {
+                localStorage.removeItem("studentId");
             }
             console.log('[Login] User data stored in localStorage');
 

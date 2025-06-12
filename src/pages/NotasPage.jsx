@@ -15,6 +15,7 @@ function NotasPage() {
   const userId = localStorage.getItem('userId');
   const userType = localStorage.getItem('userType');
   const teacherId = localStorage.getItem('teacherId');
+  const studentId = localStorage.getItem('studentId');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -70,10 +71,19 @@ function NotasPage() {
           }
           setGradesByCourse(gradesByCourseTemp);
         } else if (userType === 'Student') {
-          // Obtener notas del estudiante
-          const response = await fetch(`${API_BASE_URL}/grades?student.id=${userId}&_expand=subject`);
+          // Obtener notas del estudiante usando studentId real
+          const idToUse = studentId || userId;
+          const response = await fetch(`${API_BASE_URL}/grades?studentId=${idToUse}`);
           const grades = await response.json();
-          setStudentGrades(grades.filter(g => g.subject));
+          // Filtrar grades que tengan subject y que el grade sea del mismo alumno
+          setStudentGrades(
+            grades.filter(
+              g =>
+                g.subject &&
+                g.student &&
+                String(g.student.id) === String(idToUse)
+            )
+          );
         }
       } catch (error) {
         errorAlert('Error', 'No se pudieron cargar los cursos y estudiantes', 'error');
@@ -83,7 +93,7 @@ function NotasPage() {
     };
     fetchData();
     // eslint-disable-next-line
-  }, [userId, userType, teacherId]);
+  }, [userId, userType, teacherId, studentId]);
 
   const handleEditClick = (gradeId, currentScore) => {
     setEditGradeId(gradeId);
