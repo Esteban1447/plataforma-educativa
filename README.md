@@ -82,7 +82,7 @@ plataforma-educatica/
 ## 🔑 Credenciales de acceso
 
 - **Usuario:** `admin`
-- **Contraseña:** `admin`
+- **Contraseña:** `123`
 
 ---
 
