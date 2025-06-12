@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { API_BASE_URL } from "../config/api";
 
 // Variable para la API de estadísticas (actualizada)
-const STATS_API_BASE_URL = "http://apiedu.onrender.com";
+const STATS_API_BASE_URL = "";
 
 function Estadisticas() {
   const [imgUrls, setImgUrls] = useState([]);

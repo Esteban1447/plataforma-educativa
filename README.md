@@ -100,10 +100,6 @@ plataforma-educatica/
   `1077711095`  
   [martinezgarciajhoanmanuel@gmail.com](mailto:martinezgarciajhoanmanuel@gmail.com)
 
-- **Andrés Álvarez Cano**  
-  `1025887346`  
-  [andrescano7182@gmail.com](mailto:andrescano7182@gmail.com)
-
 ---
 
 
