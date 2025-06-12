@@ -439,6 +439,16 @@ th {
   color: var(--color-primary);
 }
 
+/* Estilos básicos para el contenedor de estadísticas */
+.estadisticas-container {
+  background: #fff;
+  border-radius: 8px;
+  padding: 2rem;
+  margin: 1rem 0;
+  box-shadow: 0 2px 8px #0001;
+  text-align: center;
+}
+
 @media (max-width: 900px) {
   .admin-container {
     padding: 0 0.5rem;

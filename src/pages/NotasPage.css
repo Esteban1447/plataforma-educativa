@@ -1,0 +1,134 @@
+/* Estilos generales para la página de notas */
+.notas-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 120px);
+}
+
+.notas-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.grades-table {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+}
+
+.grades-table h2 {
+  margin: 0 0 1rem 0;
+  font-size: 1.5rem;
+  border-bottom: 2px solid #0077cc;
+  padding-bottom: 0.5rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+th, td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  background: #f4f4f9;
+  font-weight: 500;
+}
+
+/* Estilos para los botones de edición de notas */
+.styled-grade-btn,
+.edit-grade-btn,
+.save-grade-btn,
+.cancel-grade-btn {
+  padding: 0.35rem 0.9rem;
+  border-radius: 5px;
+  border: none;
+  font-size: 0.97rem;
+  font-weight: 600;
+  margin: 0 2px;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+}
+
+.edit-grade-btn,
+.styled-grade-btn.edit-grade-btn {
+  background: #0077cc;
+  color: #fff;
+  border: 1px solid #0077cc;
+}
+
+.edit-grade-btn:hover,
+.styled-grade-btn.edit-grade-btn:hover {
+  background: #005fa3;
+  color: #fff;
+}
+
+.save-grade-btn,
+.styled-grade-btn.save-grade-btn {
+  background: #28a745;
+  color: #fff;
+  border: 1px solid #28a745;
+}
+
+.save-grade-btn:hover,
+.styled-grade-btn.save-grade-btn:hover {
+  background: #218838;
+  color: #fff;
+}
+
+.cancel-grade-btn,
+.styled-grade-btn.cancel-grade-btn {
+  background: #ff4d4d;
+  color: #fff;
+  border: 1px solid #ff4d4d;
+}
+
+.cancel-grade-btn:hover,
+.styled-grade-btn.cancel-grade-btn:hover {
+  background: #d93636;
+  color: #fff;
+}
+
+/* Estilos para el mensaje de carga */
+.loading-message {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #666;
+  margin: 2rem 0;
+}
+
+/* Estilos para el promedio de notas */
+.promedio-notas {
+  margin-top: 1rem;
+  font-weight: bold;
+}
+
+/* Estilos para el cartel de aprobado/reprobado */
+.estado-aprobado {
+  margin-top: 0.5rem;
+  background: #d4edda;
+  color: #155724;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.estado-reprobado {
+  margin-top: 0.5rem;
+  background: #f8d7da;
+  color: #721c24;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  display: inline-block;
+}

@@ -6,6 +6,7 @@ import { API_BASE_URL } from '../config/api';
 import { errorAlert, deleteUser } from "../helpers/functions";
 import CourseForm from '../components/CourseForm';
 import { getCourseGrades } from "../services/courseService";
+import Estadisticas from "../components/Estadisticas";
 
 function AdminPage() {
   const [users, setUsers] = useState([]);
@@ -872,7 +873,7 @@ function AdminPage() {
         {activeTab === 'stats' && (
           <div className="admin-section">
             <h2><i className="fas fa-chart-bar"></i> Estadísticas</h2>
-            {/* Contenido de estadísticas */}
+            <Estadisticas />
           </div>
         )}
 

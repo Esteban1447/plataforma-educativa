@@ -153,6 +153,19 @@ function NotasPage() {
                     const courseData = gradesByCourse[course.id];
                     if (!courseData) return null;
                     const { subjects, students } = courseData;
+                    // Calcular promedio de notas de todos los estudiantes de este curso
+                    const allScores = [];
+                    students.forEach(({ grades }) => {
+                      grades.forEach(g => {
+                        if (typeof g.grade === "number") {
+                          allScores.push(g.grade);
+                        }
+                      });
+                    });
+                    const avg =
+                      allScores.length > 0
+                        ? (allScores.reduce((a, b) => a + b, 0) / allScores.length).toFixed(2)
+                        : null;
                     return (
                       <div key={course.id} className="course-grades-block">
                         <h3>{course.name}</h3>
@@ -160,7 +173,6 @@ function NotasPage() {
                           <thead>
                             <tr>
                               <th>Estudiante</th>
-                              {/* Cambiado: mostrar "Notas" en vez del nombre de la materia */}
                               {subjects.map(subject => (
                                 <th key={subject.id}>Notas</th>
                               ))}
@@ -183,17 +195,22 @@ function NotasPage() {
                                                 <input
                                                   type="number"
                                                   min="0"
-                                                  max="100"
+                                                  max="5"
+                                                  step="0.01"
                                                   value={editGradeValue}
-                                                  onChange={e => setEditGradeValue(e.target.value)}
+                                                  onChange={e => {
+                                                    let val = e.target.value;
+                                                    if (Number(val) > 5) val = "5";
+                                                    setEditGradeValue(val);
+                                                  }}
                                                   style={{ width: 70 }}
                                                 />
                                                 <button
-                                                  className="save-grade-btn"
+                                                  className="save-grade-btn styled-grade-btn"
                                                   onClick={() => handleSaveClick(gradeObj.gradeId)}
                                                 >Guardar</button>
                                                 <button
-                                                  className="cancel-grade-btn"
+                                                  className="cancel-grade-btn styled-grade-btn"
                                                   onClick={handleCancelEdit}
                                                 >Cancelar</button>
                                               </>
@@ -209,14 +226,13 @@ function NotasPage() {
                                     );
                                   })}
                                   <td>
-                                    {/* Acciones: un botón editar por cada materia */}
                                     {subjects.map(subject => {
                                       const gradeObj = grades.find(g => g.subject && g.subject.id === subject.id);
                                       return (
                                         <span key={subject.id} style={{ marginRight: 8 }}>
                                           {gradeObj && editGradeId !== gradeObj.gradeId && (
                                             <button
-                                              className="edit-grade-btn"
+                                              className="edit-grade-btn styled-grade-btn"
                                               onClick={() => handleEditClick(gradeObj.gradeId, gradeObj.grade)}
                                             >Editar</button>
                                           )}
@@ -231,6 +247,16 @@ function NotasPage() {
                                 <td colSpan={1 + subjects.length + 1}>No hay estudiantes matriculados en este curso.</td>
                               </tr>
                             )}
+                            {/* Fila de promedio de notas de todos los estudiantes */}
+                            <tr>
+                              <td style={{ fontWeight: "bold" }}>Promedio general</td>
+                              {subjects.map((_, idx) => (
+                                <td key={idx}></td>
+                              ))}
+                              <td style={{ fontWeight: "bold" }}>
+                                {avg !== null ? avg : "-"}
+                              </td>
+                            </tr>
                           </tbody>
                         </table>
                       </div>
