@@ -1,4 +1,4 @@
-export const API_BASE_URL = 'http://localhost:8080';
+export const API_BASE_URL = 'http://apiedu.onrender.com';
 
 export const apiCall = async (endpoint, method = 'GET', body = null) => {
   try {
