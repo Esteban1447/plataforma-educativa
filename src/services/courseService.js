@@ -19,13 +19,40 @@ export const getCourses = async () => {
   }
 };
 
-export const getTeacherCourses = async (teacherId) => {
-  // Devuelve todos los cursos que da el profesor
+export const getTeacherCourses = async (teacherIdOrUserId) => {
+  // Si se pasa un userId, buscar el teacherId primero
+  let teacherId = teacherIdOrUserId;
+  if (!teacherIdOrUserId || isNaN(Number(teacherIdOrUserId))) {
+    throw new Error('Se requiere teacherId o userId numérico');
+  }
+  // Si el parámetro es un userId (no un teacherId), buscar el teacherId
+  if (typeof teacherIdOrUserId === 'string' || typeof teacherIdOrUserId === 'number') {
+    // Si el valor es un userId (no teacherId), buscar el teacherId
+    // (esto es seguro si el teacherId y userId no coinciden)
+    // Si ya tienes el teacherId, úsalo directamente
+    // Si no, intenta buscarlo
+    // (esto permite compatibilidad hacia atrás)
+    if (localStorage.getItem('userType') === 'Teacher' && !localStorage.getItem('teacherId')) {
+      // Buscar teacherId por userId
+      try {
+        const teacherRes = await fetch(`${API_URL}/teachers?userId=${teacherIdOrUserId}`);
+        if (teacherRes.ok) {
+          const teacherArr = await teacherRes.json();
+          if (Array.isArray(teacherArr) && teacherArr.length > 0 && teacherArr[0].id) {
+            teacherId = teacherArr[0].id;
+            localStorage.setItem('teacherId', teacherId);
+          }
+        }
+      } catch (e) {
+        // fallback: usar el parámetro como teacherId
+        teacherId = teacherIdOrUserId;
+      }
+    }
+  }
   try {
-    const coursesRes = await fetch(`${API_URL}/courses?teacher.id=${teacherId}`);
-    if (!coursesRes.ok) throw new Error('Error fetching courses');
-    const courses = await coursesRes.json();
-    // Retorna todos los cursos asignados al profesor
+    const response = await fetch(`${API_URL}/courses?teacherId=${teacherId}`);
+    if (!response.ok) throw new Error('Error fetching courses');
+    const courses = await response.json();
     return Array.isArray(courses) ? courses : [];
   } catch (error) {
     console.error('[CourseService] Error:', error);

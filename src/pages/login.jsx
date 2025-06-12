@@ -43,6 +43,29 @@ const Login = () => {
             localStorage.setItem("userType", user.userType);
             localStorage.setItem("userEmail", user.email);
             localStorage.setItem("token", user.token || "dummy-token");
+
+            // Si es profesor, obtener el teacherId desde /teachers?userId={user.id}
+            if (user.userType === "Teacher") {
+                try {
+                    const teacherRes = await fetch(`${API_BASE_URL}/teachers?userId=${user.id}`);
+                    if (teacherRes.ok) {
+                        const teachers = await teacherRes.json();
+                        // Si la respuesta es un objeto, conviértelo en array
+                        const teacherArr = Array.isArray(teachers) ? teachers : [teachers];
+                        if (teacherArr.length > 0 && teacherArr[0].id) {
+                            localStorage.setItem("teacherId", String(teacherArr[0].id));
+                        } else {
+                            localStorage.removeItem("teacherId");
+                        }
+                    } else {
+                        localStorage.removeItem("teacherId");
+                    }
+                } catch (e) {
+                    localStorage.removeItem("teacherId");
+                }
+            } else {
+                localStorage.removeItem("teacherId");
+            }
             console.log('[Login] User data stored in localStorage');
 
             redirectAlert(

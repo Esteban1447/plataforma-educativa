@@ -261,7 +261,7 @@ function AdminPage() {
       const course = courses.find(c => c.id === courseId);
       if (!course) return;
 
-      // Obtener el profesor desde la API para asegurar datos actualizados
+      // teacherId debe ser el id de la entidad teacher, no del usuario
       const teacherRes = await fetch(`${API_BASE_URL}/teachers/${teacherId}`);
       if (!teacherRes.ok) {
         errorAlert('Error', 'No se pudo obtener el profesor', 'error');

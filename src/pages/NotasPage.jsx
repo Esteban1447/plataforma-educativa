@@ -14,14 +14,16 @@ function NotasPage() {
   const [studentGrades, setStudentGrades] = useState([]);
   const userId = localStorage.getItem('userId');
   const userType = localStorage.getItem('userType');
+  const teacherId = localStorage.getItem('teacherId');
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
         if (userType === 'Teacher') {
-          // 1. Obtener cursos asignados al profesor
-          const coursesRes = await fetch(`${API_BASE_URL}/courses?teachersId=${userId}`);
+          // 1. Obtener cursos asignados al profesor usando teacherId de localStorage
+          if (!teacherId) throw new Error('No se encontró el ID del profesor');
+          const coursesRes = await fetch(`${API_BASE_URL}/courses?teacherId=${teacherId}`);
           if (!coursesRes.ok) throw new Error('No se pudo obtener los cursos del profesor');
           const teacherCourses = await coursesRes.json();
           setCourses(teacherCourses);
@@ -81,7 +83,7 @@ function NotasPage() {
     };
     fetchData();
     // eslint-disable-next-line
-  }, [userId, userType]);
+  }, [userId, userType, teacherId]);
 
   const handleEditClick = (gradeId, currentScore) => {
     setEditGradeId(gradeId);
