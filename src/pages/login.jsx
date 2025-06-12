@@ -129,9 +129,9 @@ const Login = () => {
                     placeholder="********"
                 />
             </span>
-            <span className="span"><a href="#">¿Olvidaste tu Contraseña?</a></span>
+
             <input className="submit" type="submit" onClick={handleLogin} value="Iniciar Sesión" />
-            <span className="span">¿No tienes una cuenta? <Link to="/register">¡Créala!</Link></span>
+
         </form>
     );
 }
