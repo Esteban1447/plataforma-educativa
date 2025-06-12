@@ -150,8 +150,9 @@ function NotasPage() {
                           <thead>
                             <tr>
                               <th>Estudiante</th>
+                              {/* Cambiado: mostrar "Notas" en vez del nombre de la materia */}
                               {subjects.map(subject => (
-                                <th key={subject.id}>{subject.name}</th>
+                                <th key={subject.id}>Notas</th>
                               ))}
                               <th>Acciones</th>
                             </tr>

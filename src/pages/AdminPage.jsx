@@ -818,7 +818,6 @@ function AdminPage() {
                   <tr>
                     <th>ID</th>
                     <th>Nombre del Curso</th>
-                    <th>Materias</th>
                     <th>Acciones</th>
                   </tr>
                 </thead>
@@ -827,8 +826,6 @@ function AdminPage() {
                     <tr key={course.id}>
                       <td>{course.id}</td>
                       <td>{course.name}</td>
-                      <td>
-                      </td>
                       <td>
                         <div className="action-buttons">
                           <button 
