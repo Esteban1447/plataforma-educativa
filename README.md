@@ -78,6 +78,9 @@ plataforma-educatica/
    ```
 
 ---
+**Tambien puedes entrar a travez de 
+(https://magenta-centaur-a15742.netlify.app/admin)
+---
 
 ## 🔑 Credenciales de acceso
 
